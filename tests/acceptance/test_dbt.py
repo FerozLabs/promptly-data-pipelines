@@ -45,7 +45,7 @@ def run_command_in_container(
     return result
 
 
-def test_acceptance_dbt_postgres(  # noqa: PLR0914
+def test_acceptance_dbt(  # noqa: PLR0914
     docker_network,
     postgres_with_medical_data_sample,
     minio_with_dimensional_raw_data,
@@ -91,121 +91,57 @@ def test_acceptance_dbt_postgres(  # noqa: PLR0914
     main_app_container.start()
 
     # Asserts if all components are accessible from the main app container
-    trino_response = main_app_container.exec('curl http://trino:8080/v1/info')
-    nessie_response = main_app_container.exec(
-        'curl http://catalog:19120/api/v1/trees'
+    infra_commands = [
+        ('curl http://trino:8080/v1/info', 'Trino Acessibility Check'),
+        (
+            'curl http://catalog:19120/api/v1/trees',
+            'Nessie Acessibility Check',
+        ),
+        ('curl http://minio:9000/', 'Minio Acessibility Check'),
+    ]
+
+    for command, component_name in infra_commands:
+        logger.info(f'Testing Component: {component_name}')
+        run_command_in_container(main_app_container, command, component_name)
+
+    dbt_common_configs = (
+        ' --project-dir dbt/promptly/ --profiles-dir dbt/promptly/profiles/'  # noqa: E501
     )
-    minio_response = main_app_container.exec('curl http://minio:9000/')
+    dbt_commands = [
+        (
+            'poetry run dbt deps' + dbt_common_configs + ' --target trino',
+            'DBT Deps',
+        ),
+        (
+            'poetry run dbt run --select elementary --full-refresh'
+            + dbt_common_configs
+            + ' --target trino',
+            'Elementary Setup',
+        ),  # noqa: E501
+        (
+            'poetry run dbt run ' + dbt_common_configs + ' --target trino',
+            'DBT Run',
+        ),
+        (
+            'poetry run dbt test ' + dbt_common_configs + ' --target trino',
+            'DBT Test',
+        ),
+        (
+            'poetry run edr monitor'
+            + dbt_common_configs
+            + f' --slack-token {os.getenv("ELEMENTARY_SLACK_TOKEN")}'
+            + f' --slack-channel-name {os.getenv("ELEMENTARY_SLACK_CHANNEL")}',
+            'Elementary Monitor',
+        ),
+        ('poetry run edr report' + dbt_common_configs, 'Elementary Report'),
+    ]
 
-    assert trino_response.exit_code == 0, (
-        'Trino is not accessible from the main app container. '
-        + f'Message Error: {trino_response.output.decode("utf-8")}\n'
-        + f'Container Logs: {main_app_container.get_logs()}'
-    )
-
-    assert nessie_response.exit_code == 0, (
-        'Nessie is not accessible from the main app container. '
-        + f'Message Error: {nessie_response.output.decode("utf-8")}\n'
-        + f'Container Logs: {main_app_container.get_logs()}'
-    )
-
-    assert minio_response.exit_code == 0, (
-        'Minio is not accessible from the main app container. '
-        + f'Message Error: {minio_response.output.decode("utf-8")}\n'
-        + f'Container Logs: {main_app_container.get_logs()}'
-    )
-
-    dbt_deps_command = main_app_container.exec(
-        'poetry run dbt deps'
-        + ' --project-dir dbt/promptly/'
-        + ' --profiles-dir dbt/promptly/profiles/'
-        + ' --target trino'
-    )
-
-    assert dbt_deps_command.exit_code == 0, (
-        f'DBT deps failed with exit code {dbt_deps_command.exit_code}\n'
-        + f'Message Error: {dbt_deps_command.output.decode("utf-8")}\n'
-        + f'Container Logs: {main_app_container.get_logs()}'
-    )
-
-    elementary_setup_command = (
-        'poetry run dbt run --select elementary'
-        + ' --project-dir dbt/promptly/'
-        + ' --profiles-dir dbt/promptly/profiles/'
-        + ' --target trino'
-        + ' --full-refresh'
-    )
-
-    elementary_setup_result = main_app_container.exec(elementary_setup_command)
-
-    assert elementary_setup_result.exit_code == 0, (
-        'Elementary setup failed with exit code'
-        + f'{elementary_setup_result.exit_code}\n'
-        + f'Message Error: {elementary_setup_result.output.decode("utf-8")}\n'
-        + f'Container Logs: {main_app_container.get_logs()}'
-    )
-
-    dbt_run_command = (
-        'poetry run dbt run --project-dir dbt/promptly/'
-        + ' --profiles-dir dbt/promptly/profiles/'
-        + ' --target trino'
-    )
-
-    dbt_run_result = main_app_container.exec(dbt_run_command)
-
-    assert dbt_run_result.exit_code == 0, (
-        f'DBT run failed with exit code {dbt_run_result.exit_code}\n'
-        + f'Message Error: {dbt_run_result.output.decode("utf-8")}\n'
-        + f'Container Logs: {main_app_container.get_logs()}'
-    )
-
-    dbt_tests = (
-        'poetry run dbt test --project-dir dbt/promptly/'
-        + ' --profiles-dir dbt/promptly/profiles/'
-        + ' --target trino'
-    )
-
-    dbt_test_result = main_app_container.exec(dbt_tests)
-
-    assert dbt_test_result.exit_code == 0, (
-        f'DBT tests failed with exit code {dbt_test_result.exit_code}\n'
-        + f'Message Error: {dbt_test_result.output.decode("utf-8")}\n'
-        + f'Container Logs: {main_app_container.get_logs()}'
-    )
-
-    elementary_alerts_command = (
-        'poetry run edr monitor'
-        + f' --project-dir dbt/promptly/ --profiles-dir dbt/promptly/profiles/'
-        + f' --slack-token {os.getenv("ELEMENTARY_SLACK_TOKEN")}'
-        + f' --slack-channel-name {os.getenv("ELEMENTARY_SLACK_CHANNEL")}'
-    )
-
-    elementary_alerts_result = main_app_container.exec(
-        elementary_alerts_command
-    )
-
-    assert elementary_alerts_result.exit_code == 0, (
-        'Elementary check failed with exit code'
-        + f'{elementary_alerts_result.exit_code}\n'
-        + f'Message Error: {elementary_alerts_result.output.decode("utf-8")}\n'
-        + f'Container Logs: {main_app_container.get_logs()}'
-    )
+    for command, component_name in dbt_commands:
+        logger.info(f'Testing Component: {component_name}')
+        run_command_in_container(main_app_container, command, component_name)
 
     if os.getenv('DEBUG', 'false').lower() == 'true':
         ipdb.set_trace()  # noqa: E702
-
-    elementary_report_command = 'poetry run edr report --project-dir dbt/promptly/ --profiles-dir dbt/promptly/profiles/'  # noqa: E501
-
-    elementary_report_result = main_app_container.exec(
-        elementary_report_command
-    )
-
-    assert elementary_report_result.exit_code == 0, (
-        'Elementary report failed with exit code'
-        + f'{elementary_report_result.exit_code}\n'
-        + f'Message Error: {elementary_report_result.output.decode("utf-8")}\n'
-        + f'Container Logs: {main_app_container.get_logs()}'
-    )
 
     # copy the reports from the running container to the host machine for inspection # noqa: E501
     subprocess.run(
