@@ -1,0 +1,16 @@
+ProviderName,ProviderID,NPI,Specialty,SiteName,SourceID,SpecSource,IDSource
+John Doe,001,1234567890,Cardiology,City Hospital,JD001,Cardiology,JD-NPI
+Jane Smith,002,2345678901,Peds,Village Clinic,JS002,Pediatrics,JS-NPI
+Dr. J. Doe,001,1234567890,Cardiology,City Hospital,JD001,Cardiology,JD-NPI
+Johnathan Doe,003,3456789012,Neuro,Metro Med,JD003,Neurology,JD-NPI-NEW
+Jane S.,004,NULL,Peds,Suburban Health,JS004,Pediatrics,JS-NPI-SHORT
+Dr. John Doe,001,1234567890,Cardiology,City Hospital,JD001,Cardiology,JD-NPI
+Emily J,005,6789012345,Oncology,North Health Inst,EJ006,Oncology,EJ-NPI
+NULL,006,7890123456,Ortho,Downtown Health,MB007,Orthopedics,MB-NPI
+Sarah Wilson,007,8901234567,Dermatology,Metro Med,SW008,Dermatology,SW-NPI
+Chris Davis,008,9012345678,General Practice,City Hospital,CD009,General Practice,CD-NPI
+Laura Taylor,009,0123456789,Int Med,Village Clinic,LT010,Int Med,LT-NPI
+Kevin Garcia,010,1234567800,Cardiology,City Hospital,KG011,Cardiology,KG-NPI
+Patricia Martinez,011,2345678909,Peds,Suburban Health,PM012,Pediatrics,PM-NPI
+Robert Lee,012,3456789018,Neuro,Eastside Clinic,RL013,Neurology,RL-NPI
+Linda R.,013,4567890127,Derma,Downtown Health,LR014,Dermatology,LR-NPI

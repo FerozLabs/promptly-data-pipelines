@@ -1,0 +1,6 @@
+packages:
+  - package: elementary-data/elementary
+    version: 0.19.4
+    ## Docs: https://docs.elementary-data.com
+  - package: dbt-labs/dbt_utils
+    version: 1.3.0
