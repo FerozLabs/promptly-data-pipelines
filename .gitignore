@@ -11,3 +11,5 @@ __pycache__
 
 # elementary
 edr_target
+
+.vscode

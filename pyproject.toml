@@ -26,6 +26,8 @@ dependencies = [
     "dbt-core (==1.9.3)",
     "setuptools (>=80.9.0,<81.0.0)",
     "pip (>=25.2,<26.0)",
+    "kubernetes (>=33.1.0,<34.0.0)",
+    "gitpython (>=3.1.45,<4.0.0)",
 ]
 
 
@@ -76,7 +78,8 @@ pyperclip = "^1.9.0"
 [tool.taskipy.tasks]
 lint = 'ruff check . && ruff check . --diff'
 format = 'ruff check . --fix && ruff format .'
-test_acceptance = 'poetry run pytest -s -x -vv -k "acceptance"'
-test_acceptance_debug = 'DEBUG=true poetry run pytest -s -x -vv -k "acceptance"'
+test_acceptance_dbt = 'poetry run pytest -s -x -vv -k "test_dbt"'
+test_acceptance_dbt_debug = 'DEBUG=true poetry run pytest -s -x -vv -k "test_dbt"'
 exec_test_container = 'docker exec -it dbt-acceptance-test-container /bin/bash'
 
+test_acceptance_infra = 'poetry run pytest -s -x -vv -k "test_infra"'

@@ -1,4 +1,5 @@
 import os
+import subprocess
 import time
 
 import boto3
@@ -19,6 +20,8 @@ logger = loguru.logger
 
 
 STATUS_CODE_OK = 200
+STATUS_CODE_CREATED = 201
+CURRENT_DIR = os.path.dirname(__file__)
 
 
 @pytest.fixture(scope='session')
@@ -267,3 +270,146 @@ def trino_with_nessie_catalog(docker_network, minio, nessie_catalog):
     assert 's3' in catalogs
 
     return trino
+
+
+@pytest.fixture(scope='session')
+def kind_cluster():
+    # Ensure brew is installed
+    subprocess.run(
+        'which brew || /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"',
+        shell=True,
+        check=True,  # noqa: E501
+    )
+
+    # Ensure kind is installed
+    subprocess.run('which kind || brew install kind', shell=True, check=True)
+
+    # Verify if a kind cluster named 'acceptance' already exists
+    existing_clusters = subprocess.run(
+        'kind get clusters',
+        check=False,
+        shell=True,
+        capture_output=True,
+        text=True,
+    )
+    if 'acceptance' in existing_clusters.stdout.splitlines():
+        subprocess.run(
+            'kind delete cluster --name acceptance',
+            shell=True,
+            check=True,
+        )
+
+    # Create kind cluster
+    cluster_creation = subprocess.run(
+        'kind create cluster --config tests/acceptance/fixtures/infra/kind_cluster.yaml --name acceptance --wait 3m',  # noqa: E501
+        shell=True,
+        check=True,
+    )
+
+    assert cluster_creation.returncode == 0, (
+        'Kind cluster creation failed or timed out'
+    )
+
+    # Ensure kubectl is installed
+    subprocess.run(
+        'which kubectl || brew install kubectl', shell=True, check=True
+    )
+
+    # Ensure kubectx is installed
+    subprocess.run(
+        'which kubectx || brew install kubectx',
+        shell=True,
+        check=True,
+    )
+
+    # Switch to kind context
+    subprocess.run('kubectx kind-acceptance', shell=True, check=True)
+
+    # Ensure Helm is installed
+    subprocess.run('which helm || brew install helm', shell=True, check=True)
+
+    yield
+
+    # Delete kind cluster
+    subprocess.run(
+        'kind delete cluster --name acceptance', shell=True, check=True
+    )
+
+
+@pytest.fixture(scope='session')
+def gitea_container():
+    # Start Gitea container
+    container = (
+        DockerContainer('gitea/gitea:latest')
+        .with_exposed_ports(3000, 22)
+        .with_env('USER_UID', '1000')
+        .with_env('USER_GID', '1000')
+        .with_env('GITEA__database__DB_TYPE', 'sqlite3')
+        .with_env('GITEA__database__PATH', '/data/gitea/gitea.db')
+        .with_env('GITEA__security__INSTALL_LOCK', 'true')
+        .with_env('GITEA__security__SECRET_KEY', 'infra-acceptance-test')
+        .with_env('GITEA__security__INTERNAL_TOKEN', 'infra-acceptance-test')
+        .with_env('GITEA__service__DISABLE_REGISTRATION', 'true')
+        .with_env('GITEA__service__ENABLE_NOTIFY_MAIL', 'false')
+        .with_env('GITEA__admin__USERNAME', 'admin')
+        .with_env('GITEA__admin__PASSWORD', 'password123')
+        .with_env('GITEA__admin__EMAIL', 'admin@example.com')
+        .with_name('gitea-acceptance-test')
+    )
+
+    container.start()
+
+    # Get connection details
+    host = container.get_container_host_ip()
+    web_port = container.get_exposed_port(3000)
+    ssh_port = container.get_exposed_port(22)
+
+    # Wait for Gitea to start (simple sleep)
+    time.sleep(10)
+
+    os.environ['GITEA_WEB_URL'] = f'http://{host}:{web_port}'
+    os.environ['GITEA_SSH_URL'] = f'ssh://git@{host}:{ssh_port}/'
+
+    container.exec([
+        'su',
+        'git',
+        '-c',
+        'gitea admin user create --username admin --password password123 --email admin@example.com --admin',  # noqa: E501
+    ])
+
+    response = requests.post(
+        f'{os.environ["GITEA_WEB_URL"]}/api/v1/users/admin/tokens',
+        auth=('admin', 'password123'),
+        json={
+            'name': 'acceptance-test-token',
+            'scopes': ['all'],  # scopes válidos na versão atual
+        },
+    )
+
+    os.environ['GITEA_ADMIN_TOKEN'] = response.json()['sha1']
+
+    yield container
+
+    container.stop()
+
+
+@pytest.fixture(scope='session')
+def gitea_repo(gitea_container: DockerContainer):
+    gitea_url = os.environ['GITEA_WEB_URL']
+    # create admin token via api
+
+    response = requests.post(
+        f'{gitea_url}/api/v1/user/repos',
+        json={
+            'name': 'infra-acceptance-test',
+            'private': True,
+            'auto_init': True,
+        },
+        headers={'Authorization': f'token {os.environ["GITEA_ADMIN_TOKEN"]}'},
+    )
+
+    assert response.status_code == STATUS_CODE_CREATED, (
+        'Failed to create Gitea repository'
+    )
+
+    return response.json()

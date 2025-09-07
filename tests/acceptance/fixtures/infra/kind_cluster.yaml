@@ -1,0 +1,21 @@
+# kind-cluster.yaml
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  # Master node
+  - role: control-plane
+    image: kindest/node:v1.27.3
+  - role: worker
+    # Worker 1
+    image: kindest/node:v1.27.3
+    extraPortMappings:
+      - containerPort: 30001
+        hostPort: 30001
+        protocol: TCP
+    labels:
+      node-type: spot-instance
+  - role: worker
+    # Worker 2
+    image: kindest/node:v1.27.3
+    labels:
+      node-type: spot-instance
