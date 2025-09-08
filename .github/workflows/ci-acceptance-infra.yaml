@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - 'infra/**'
-      - 'tests/acceptance/**'
+      - 'tests/acceptance/test_infra.py'
       - '.github/workflows/ci-acceptance-infra.yaml'
       - 'pyproject.toml'
       - 'poetry.lock'

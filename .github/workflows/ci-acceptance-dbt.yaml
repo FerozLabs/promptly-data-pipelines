@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - 'dbt/**'
-      - 'tests/acceptance/**'
+      - 'tests/acceptance/test_dbt.py'
       - '.github/workflows/ci-acceptance-dbt.yaml'
       - 'pyproject.toml'
       - 'poetry.lock'
@@ -17,6 +17,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 0: Setup environment variables for the acceptance tests
+      - name: Set up environment variables
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y kubectx
+          echo "ARGO_CD_REPO_URL=${{ secrets.ARGO_CD_REPO_URL }}" >> $GITHUB_ENV
+          echo "ARGO_CD_GIT_USER=${{ secrets.ARGO_CD_GIT_USER }}" >> $GITHUB_ENV
+          echo "ARGO_CD_GIT_TOKEN=${{ secrets.ARGO_CD_GIT_TOKEN }}" >> $GITHUB_ENV
+          echo "ELEMENTARY_SLACK_TOKEN=${{ secrets.ELEMENTARY_SLACK_TOKEN }}" >> $GITHUB_ENV
+          echo "ELEMENTARY_SLACK_CHANNEL=${{ secrets.ELEMENTARY_SLACK_CHANNEL }}" >> $GITHUB_ENV
+
       # Step 1: Checkout the code
       - name: Checkout repository
         uses: actions/checkout@v3
