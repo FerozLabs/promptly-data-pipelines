@@ -13,7 +13,34 @@ on:
     branches: [main]
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'   # adjust to your version
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-root --with dev
+
+      - name: Run linters
+        run: poetry run task lint
+      
+      - name: Run SQL lint
+        run: poetry run task lint_sql
+
   test:
+    needs: lint
     runs-on: ubuntu-latest
 
     steps:

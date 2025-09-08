@@ -28,6 +28,7 @@ dependencies = [
     "pip (>=25.2,<26.0)",
     "kubernetes (>=33.1.0,<34.0.0)",
     "gitpython (>=3.1.45,<4.0.0)",
+    "sqlfluff (>=3.4.2,<4.0.0)",
 ]
 
 
@@ -76,12 +77,18 @@ pyperclip = "^1.9.0"
 
 
 [tool.taskipy.tasks]
+# linting and formatting
 lint = 'ruff check . && ruff check . --diff'
 format = 'ruff check . --fix && ruff format .'
+
+lint_sql = 'sqlfluff lint ./dbt/ --dialect trino'
+format_sql = 'sqlfluff format ./dbt/ --dialect trino --force'
+
+# testing
 test_acceptance_dbt = 'poetry run pytest -s -x -vv -k "test_dbt"'
 test_acceptance_dbt_debug = 'DEBUG=true poetry run pytest -s -x -vv -k "test_dbt"'
 exec_test_container = 'docker exec -it dbt-acceptance-test-container /bin/bash'
-
 test_acceptance_infra = 'poetry run pytest -s -x -vv -k "test_infra"'
 
+# utils
 docker_clean_up = 'docker rm $(docker ps -aq)'
