@@ -1,0 +1,44 @@
+name: Acceptance Tests for the DBT project
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'dbt/**'
+      - 'tests/acceptance/**'
+      - '.github/workflows/ci-acceptance-dbt.yaml'
+      - 'pyproject.toml'
+      - 'poetry.lock'
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'   # adjust to your version
+
+      # Step 3: Install Poetry
+      - name: Install Poetry
+        run: pip install poetry
+
+      # Step 4: Configure cache to speed up installs
+      - name: Cache dependencies
+        uses: actions/cache@v3
+
+      # Step 5: Install dependencies
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-root --with dev
+
+      # Step 6: Run the infrastructure acceptance tests
+      - name: Run infrastructure acceptance tests
+        run: poetry run task test_acceptance_dbt
