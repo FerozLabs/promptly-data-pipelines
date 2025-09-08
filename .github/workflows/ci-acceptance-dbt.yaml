@@ -1,4 +1,4 @@
-name: Acceptance Tests for the DBT project
+name: DBT Acceptance Tests
 
 on:
   push:

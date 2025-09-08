@@ -1,4 +1,4 @@
-name: Acceptance Tests
+name: INFRA Acceptance Tests
 
 on:
   push:
