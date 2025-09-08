@@ -1,5 +1,6 @@
 import os
 import subprocess
+import tempfile
 import time
 
 import boto3
@@ -354,7 +355,6 @@ def gitea_container():
         .with_env('GITEA__admin__USERNAME', 'admin')
         .with_env('GITEA__admin__PASSWORD', 'password123')
         .with_env('GITEA__admin__EMAIL', 'admin@example.com')
-        .with_name('gitea-acceptance-test')
     )
 
     container.start()
@@ -413,3 +413,75 @@ def gitea_repo(gitea_container: DockerContainer):
     )
 
     return response.json()
+
+
+@pytest.fixture
+def gitea_repo_with_all_current_changes(gitea_repo: dict):
+    gitea_url = os.environ['GITEA_WEB_URL']
+    token = os.environ['GITEA_ADMIN_TOKEN']
+    repo_url = f'{gitea_url}/{gitea_repo["full_name"]}.git'
+    authed_url = repo_url.replace('://', f'://admin:{token}@')
+
+    tmpdir = tempfile.mkdtemp()
+
+    # copia tudo (inclusive arquivos não rastreados)
+    subprocess.run(
+        f"rsync -av --exclude '.git' ./ {tmpdir}/",
+        shell=True,
+        check=True,
+    )
+
+    subprocess.run('git init', cwd=tmpdir, shell=True, check=True)
+    subprocess.run(
+        "git config user.email 'ci@example.com'",
+        cwd=tmpdir,
+        shell=True,
+        check=True,
+    )
+    subprocess.run(
+        "git config user.name 'CI Bot'",
+        cwd=tmpdir,
+        shell=True,
+        check=True,
+    )
+    subprocess.run('git add .', cwd=tmpdir, shell=True, check=True)
+    subprocess.run(
+        "git commit -m 'Test commit from local state'",
+        cwd=tmpdir,
+        shell=True,
+        check=True,
+    )
+    subprocess.run(
+        f'git remote add origin {authed_url}',
+        cwd=tmpdir,
+        shell=True,
+        check=True,
+    )
+    subprocess.run(
+        'git push origin master --force',
+        cwd=tmpdir,
+        shell=True,
+        check=True,
+    )
+
+    local_commit = subprocess.run(
+        ['git', 'rev-parse', 'HEAD'],
+        capture_output=True,
+        cwd=tmpdir,
+        text=True,
+        check=True,
+    ).stdout.strip()
+
+    remote_commit = subprocess.run(
+        ['git', 'ls-remote', repo_url, 'master'],
+        capture_output=True,
+        cwd=tmpdir,
+        text=True,
+        check=True,
+    ).stdout.split()[0]
+
+    assert local_commit == remote_commit, (
+        f'Expected {local_commit}, got {remote_commit}'
+    )
+
+    return authed_url

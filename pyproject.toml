@@ -83,3 +83,5 @@ test_acceptance_dbt_debug = 'DEBUG=true poetry run pytest -s -x -vv -k "test_dbt
 exec_test_container = 'docker exec -it dbt-acceptance-test-container /bin/bash'
 
 test_acceptance_infra = 'poetry run pytest -s -x -vv -k "test_infra"'
+
+docker_clean_up = 'docker rm $(docker ps -aq)'
