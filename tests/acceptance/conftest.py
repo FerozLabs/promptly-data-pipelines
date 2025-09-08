@@ -473,7 +473,7 @@ def gitea_repo_with_all_current_changes(gitea_repo: dict):
     ).stdout.strip()
 
     remote_commit = subprocess.run(
-        ['git', 'ls-remote', repo_url, 'master'],
+        ['git', 'ls-remote', authed_url, 'master'],
         capture_output=True,
         cwd=tmpdir,
         text=True,
