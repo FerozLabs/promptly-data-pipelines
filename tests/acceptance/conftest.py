@@ -484,4 +484,4 @@ def gitea_repo_with_all_current_changes(gitea_repo: dict):
         f'Expected {local_commit}, got {remote_commit}'
     )
 
-    return authed_url
+    return authed_url, tmpdir

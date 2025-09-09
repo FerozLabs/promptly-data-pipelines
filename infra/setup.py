@@ -40,7 +40,11 @@ def setup_argo_cd(
                     'username': git_user,
                     'password': git_token,
                 }
-            }
+            },
+            # Enable namespace creation by Argo CD
+            'cm': {
+                'application.namespaces': '*',
+            },
         },
         'server': {'service': {'type': 'LoadBalancer'}},
     }

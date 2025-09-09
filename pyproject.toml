@@ -83,7 +83,7 @@ lint = 'ruff check . && ruff check . --diff'
 format = 'ruff check . --fix && ruff format .'
 
 lint_sql = 'sqlfluff lint ./dbt/ --dialect trino'
-format_sql = 'sqlfluff format ./dbt/ --dialect trino --force'
+format_sql = 'sqlfluff format ./dbt/ --dialect trino'
 
 # testing
 test_acceptance_dbt = 'poetry run pytest -s -x -vv -k "test_dbt"'

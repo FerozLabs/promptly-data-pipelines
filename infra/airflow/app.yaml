@@ -6,12 +6,21 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: "https://airflow.apache.org/"
-    chart: airflow
-    targetRevision: "1.18.0"
+    {{- if .Values.repoURL }}
+    repoURL: {{ .Values.repoURL }} # "https://airflow.apache.org/"
+    path: infra/airflow
+    targetRevision: HEAD
     helm:
       valueFiles:
         - values.yaml
+    {{- else }}
+    repoURL: https://github.com/FerozLabs/promptly-data-pipelines.git
+    path: infra/airflow
+    targetRevision: HEAD
+    helm:
+      valueFiles:
+        - values.yaml
+    {{- end }}
   destination:
     server: "https://kubernetes.default.svc"
     namespace: airflow

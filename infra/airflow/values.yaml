@@ -1,39 +1,26 @@
-# Executor
 executor: LocalExecutor
 
-# Configurações do Airflow
-airflow:
-  fernetKey: "YOUR_FERNET_KEY"
-  secretKey: "YOUR_SECRET_KEY"
-  config:
-    # Configurações importantes para o KubernetesPodOperator
-    kubernetes:
-      namespace: "airflow"
-      in_cluster: true
-
-# Webserver
 webserver:
   defaultUser:
     username: admin
     password: admin
   service:
-    type: LoadBalancer  # ou ClusterIP se for acessar via port-forward
+    type: LoadBalancer
 
-# Banco de dados
 postgresql:
   enabled: true
   postgresqlDatabase: airflow
   postgresqlUsername: airflow
   postgresqlPassword: airflow
 
-# Persistência dos DAGs
 dags:
   persistence:
     enabled: true
     size: 1Gi
 
-# Logs
-logs:
-  persistence:
-    enabled: true
-    size: 1Gi
+createUserJob:
+  useHelmHooks: false
+  applyCustomEnv: false
+migrateDatabaseJob:
+  useHelmHooks: false
+  applyCustomEnv: false
