@@ -1,0 +1,21 @@
+// .devcontainer/devcontainer.json
+{
+  "name": "DBT Dev Container",
+  "dockerComposeFile": "../docker-compose.yaml",
+  "service": "app",               
+  "workspaceFolder": "/app",      
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.pythonPath": "/app/.venv/bin/python",
+        "extensions": [
+          "ms-python.python", 
+          "ms-azuretools.vscode-docker",
+          "redhat.vscode-yaml"
+      ]
+      } 
+    }
+  },
+  "postCreateCommand": "poetry install",
+  "remoteUser": "root"
+}
