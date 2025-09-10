@@ -98,9 +98,8 @@ exec_test_container = 'docker exec -it dbt-acceptance-test-container /bin/bash'
 # utils
 docker_clean_up = 'docker rm $(docker ps -aq)'
 
-# setup dbt
-pre_dbt_setup = 'docker-compose up -d && sleep 10'
-dbt_setup = 'poetry run python promptly/app.py'
-
+# dev env setup
+pre_dev_setup = 'docker-compose up -d && sleep 10'
+dev_setup = 'poetry run python promptly/app.py'
 # dev env clean up
-dev_cleanup = "docker-compose down && docker-compose rm --force"
+dev_cleanup = "docker-compose down --remove-orphans && docker-compose rm --force"

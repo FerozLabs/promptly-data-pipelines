@@ -1,0 +1,28 @@
+{
+  "tableName": "provider",
+  "topicName": "cdc.public.provider",
+  "key": {
+    "dataFormat": "json",
+    "fields": [
+      { "name": "provider_id_key", "type": "INTEGER", "mapping": "payload.after.provider_id" }
+    ]
+  },
+  "message": {
+    "dataFormat": "json",
+    "fields": [
+      { "name": "provider_id", "type": "INTEGER", "mapping": "payload.after.provider_id" },
+      { "name": "provider_name", "type": "VARCHAR", "mapping": "payload.after.provider_name" },
+      { "name": "npi", "type": "VARCHAR", "mapping": "payload.after.npi" },
+      { "name": "specialty", "type": "VARCHAR", "mapping": "payload.after.specialty" },
+      { "name": "care_site", "type": "VARCHAR", "mapping": "payload.after.care_site" },
+      { "name": "provider_source_value", "type": "VARCHAR", "mapping": "payload.after.provider_source_value" },
+      { "name": "specialty_source_value", "type": "VARCHAR", "mapping": "payload.after.specialty_source_value" },
+      { "name": "provider_id_source_value", "type": "VARCHAR", "mapping": "payload.after.provider_id_source_value" },
+      { "name": "op", "type": "VARCHAR", "mapping": "payload.op" },
+      { "name": "event_timestamp", "type": "BIGINT", "mapping": "payload.ts_ms" },
+      { "name": "db", "type": "VARCHAR", "mapping": "payload.source.db" },
+      { "name": "schema", "type": "VARCHAR", "mapping": "payload.source.schema" },
+      { "name": "table", "type": "VARCHAR", "mapping": "payload.source.table" }
+    ]
+  }
+}

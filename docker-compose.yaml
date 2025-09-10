@@ -33,6 +33,13 @@ services:
       - "5434:5432"
     networks:
       - datanet
+        # Enable logical replication settings for CDC
+    command: >
+      postgres
+      -c wal_level=logical
+      -c max_replication_slots=4
+      -c max_wal_senders=4
+
 
   minio:
     image: minio/minio:latest
@@ -95,13 +102,64 @@ services:
       - datanet
 
     volumes:
-      - trino-metastore:/tmp/trino-metastore
+      - ./infra/trino/etc/catalog:/etc/trino/catalog
+      - ./infra/trino/etc/kafka-table-descriptions:/etc/trino/kafka-table-descriptions
+
+
+  broker:
+    image: apache/kafka:4.1.0
+    hostname: broker
+    container_name: broker
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    networks:
+      - datanet
+    environment:
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_BROKER_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@broker:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - 9999:8080
+    environment:
+      DYNAMIC_CONFIG_ENABLED: true
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: broker:9092
+    networks:
+      - datanet
+
+  debezium:
+    image: quay.io/debezium/connect:3.2
+    platform: linux/amd64
+    container_name: debezium
+    depends_on:
+      - broker
+      - postgres_medical
+    environment:
+      BOOTSTRAP_SERVERS: broker:9092
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: debezium_config
+      OFFSET_STORAGE_TOPIC: debezium_offsets
+      STATUS_STORAGE_TOPIC: debezium_status
+      KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+    ports:
+      - "8083:8083"
+    networks:
+      - datanet
 
 
 networks:
   datanet:
     driver: bridge
 
-volumes:
-  airflow_db_data:
-  trino-metastore:

@@ -1,58 +1,15 @@
+import json
 import os
+import time
 
 import loguru
+import requests
 from sqlalchemy import text
 
 from promptly.adapters.data.postgres.datagen import ingest_fake_data
 from promptly.settings import Settings, configure_settings
 
 logger = loguru.logger
-
-
-def iceberg_with_nessie_catalog_ddl(settings: Settings):
-    return """
-    CREATE CATALOG iceberg USING iceberg
-        WITH (
-            "iceberg.catalog.type"='nessie',
-            "iceberg.nessie-catalog.uri"='http://nessie:19120/api/v1',
-            "iceberg.nessie-catalog.default-warehouse-dir"='s3://iceberg/warehouse',
-            "iceberg.nessie-catalog.ref"='main',
-            "fs.native-s3.enabled"='true',
-            "s3.endpoint"='http://minio:9000',
-            "s3.aws-access-key"='minioadmin',
-            "s3.aws-secret-key"='minioadmin',
-            "s3.region"='us-west-1',
-            "s3.path-style-access"='true'
-    )
-    """
-
-
-def s3_catalog_ddl(settings: Settings):
-    return """
-    CREATE CATALOG s3 USING hive
-        WITH (
-            "hive.metastore" = 'file',
-            "fs.native-s3.enabled"='true',
-            "fs.native-local.enabled"='true',
-            "s3.endpoint"='http://minio:9000',
-            "hive.metastore.catalog.dir" = 'file:///tmp/trino-metastore',
-            "s3.aws-access-key"='minioadmin',
-            "s3.aws-secret-key"='minioadmin',
-            "s3.region"='us-west-1',
-            "s3.path-style-access"='true'
-    )
-    """
-
-
-def external_healthcare_db_ddl(settings: Settings):
-    return """
-    CREATE CATALOG postgres_healthcare_db USING postgresql
-    WITH (
-    "connection-url"='jdbc:postgresql://postgres_medical:5432/test',
-    "connection-user"='test',
-    "connection-password"='test'
-    )
-    """
 
 
 def populate_postgres_with_medical_data_sample(settings: Settings):
@@ -93,23 +50,52 @@ def main():
     # Setup iceberg bucket
     settings.s3.create_bucket_if_not_exists('iceberg')
 
-    # Configure Trino catalogs
-    settings.trino_cluster.create_catalog_if_not_exists(
-        'iceberg', iceberg_with_nessie_catalog_ddl(settings)
-    )
-
-    settings.trino_cluster.create_catalog_if_not_exists(
-        's3', s3_catalog_ddl(settings)
-    )
-
-    settings.trino_cluster.create_catalog_if_not_exists(
-        'postgres_healthcare_db', external_healthcare_db_ddl(settings)
-    )
-
-    logger.info('Trino catalogs configured successfully.')
-
     # Populate Postgres
     populate_postgres_with_medical_data_sample(settings)
+
+    # Enable CDC for relevant tables
+    settings.health_care_db.configure_user_cdc()
+
+    try:
+        settings.health_care_db.is_cdc_enabled()
+    except Exception as e:
+        logger.error(f'Error checking CDC status: {e}')
+        raise
+
+    settings.health_care_db.create_publication_for_table('provider')
+
+    # Create Debezium connector to extract changes from Postgres
+    url = 'http://localhost:8083/connectors'
+    payload = {
+        'name': 'postgres-cdc',
+        'config': {
+            'connector.class': 'io.debezium.connector.postgresql.PostgresConnector',  # noqa: E501
+            'database.hostname': 'postgres_medical',
+            'database.port': '5432',
+            'database.user': 'test',
+            'database.password': 'test',
+            'database.dbname': 'test',
+            'database.server.name': 'medical_server',
+            'plugin.name': 'pgoutput',
+            'publication.name': 'healthcare_pub',
+            'slot.name': 'debezium_slot',
+            'table.include.list': 'public.provider,public.care_site',
+            'topic.prefix': 'cdc',
+        },
+    }
+
+    time.sleep(10)  # Wait for Kafka Connect to be ready
+    try:
+        response = requests.post(
+            url,
+            headers={'Content-Type': 'application/json'},
+            data=json.dumps(payload),
+        )
+        response.raise_for_status()
+        logger.info('Debezium connector created successfully.')
+    except requests.exceptions.RequestException as e:
+        logger.error(f'Error creating Debezium connector: {e}')
+        raise
 
     # Create external csv tables in MiniO
     define_default_external_catalog = """

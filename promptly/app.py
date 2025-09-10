@@ -41,22 +41,22 @@ def main():
             'Elementary Setup',
         ),  # noqa: E501
         # TODO: move these to airflow
-        # (
-        #     'poetry run dbt run ' + dbt_common_configs + ' --target trino',
-        #     'DBT Run',
-        # ),
-        # (
-        #     'poetry run dbt test ' + dbt_common_configs + ' --target trino',
-        #     'DBT Test',
-        # ),
-        # (
-        #     'poetry run edr monitor'
-        #     + dbt_common_configs
-        #     + f' --slack-token {os.getenv("ELEMENTARY_SLACK_TOKEN")}'
-        #     + f' --slack-channel-name {os.getenv("ELEMENTARY_SLACK_CHANNEL")}', # noqa: E501
-        #     'Elementary Monitor',
-        # ),
-        # ('poetry run edr report' + dbt_common_configs, 'Elementary Report'),
+        (
+            'poetry run dbt run ' + dbt_common_configs + ' --target trino',
+            'DBT Run',
+        ),
+        (
+            'poetry run dbt test ' + dbt_common_configs + ' --target trino',
+            'DBT Test',
+        ),
+        (
+            'poetry run edr monitor'
+            + dbt_common_configs
+            + f' --slack-token {os.getenv("ELEMENTARY_SLACK_TOKEN")}'
+            + f' --slack-channel-name {os.getenv("ELEMENTARY_SLACK_CHANNEL")}',
+            'Elementary Monitor',
+        ),
+        ('poetry run edr report' + dbt_common_configs, 'Elementary Report'),
     ]
 
     for command, description in dbt_commands:

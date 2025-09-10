@@ -2,7 +2,6 @@ import os
 import subprocess
 import time
 
-import ipdb
 import loguru
 from dotenv import load_dotenv
 from testcontainers.core.container import DockerContainer
@@ -80,7 +79,7 @@ def test_acceptance_dbt(  # noqa: PLR0914
                 TRINO_CATALOG='iceberg',
                 TRINO_HOST=trino._container.name,
                 TRINO_PORT=8080,
-                TRINO_SCHEMA='public',
+                TRINO_SCHEMA='promptly',
                 TRINO_DBT_THREADS='1',
             )
         )
@@ -141,7 +140,16 @@ def test_acceptance_dbt(  # noqa: PLR0914
         run_command_in_container(main_app_container, command, component_name)
 
     if os.getenv('DEBUG', 'false').lower() == 'true':
-        ipdb.set_trace()  # noqa: E702
+        logger.info('Running in DEBUG mode, leaving container running...')
+        logger.info(
+            f'You can connect to the container using: docker exec -it {main_app_container._container.name} /bin/bash'  # noqa: E501
+        )
+        logger.info('Press Ctrl+C to stop the test and the container.')
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            logger.info('Stopping the container...')
 
     # copy the reports from the running container to the host machine for inspection # noqa: E501
     subprocess.run(
