@@ -13,7 +13,7 @@ __pycache__
 edr_target
 
 # VS Code
-.vscode
+# .vscode
 
 # macOS
 .DS_Store

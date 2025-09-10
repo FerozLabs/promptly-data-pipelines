@@ -1,0 +1,28 @@
+{
+    "sqltools.connections": [
+        {
+            "trinoOptions": {
+                "ssl": {
+                    "rejectUnauthorized": true
+                }
+            },
+            "previewLimit": 50,
+            "driver": "Trino Driver",
+            "name": "trino-dev",
+            "catalog": "iceberg",
+            "user": "admin",
+            "server": "http://localhost:8080"
+        },
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5434,
+            "askForPassword": true,
+            "driver": "PostgreSQL",
+            "name": "pg-healthcare-db",
+            "database": "test",
+            "username": "test"
+        }
+    ]
+}

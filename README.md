@@ -24,6 +24,9 @@ poetry install
 poetry run task dev_setup
 ```
 
+### Tips
+- If coding in VSCode you can install the sqltools extension to connect to Trino and access the data directly from the editor. The configurations are in `.vscode/settings.json`.
+- Create a `.env` file based on the `.env.example` the file is already filled with the right values for local development.
 
 ## Challenge 1 – Data Ingestion and Transformation
 
