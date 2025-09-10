@@ -4,3 +4,4 @@
 __pycache__
 logs
 dbt/promptly/target
+trino-metastore/

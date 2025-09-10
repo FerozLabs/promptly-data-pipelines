@@ -27,7 +27,7 @@ elementary:
     default:
       type: trino
       method: "{{ env_var('TRINO_METHOD', 'none') }}"  # optional, one of {none | ldap | kerberos}
-      user: "{{ env_var('TRINO_USER', 'trino') }}"
+      user: "{{ env_var('TRINO_USER', 'admin') }}"
       password: "{{ env_var('TRINO_PASSWORD', '') }}"  # optional
       database: "{{ env_var('TRINO_CATALOG', 'iceberg') }}"
       host: "{{ env_var('TRINO_HOST', '') }}"

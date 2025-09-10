@@ -2,7 +2,8 @@ FROM python:3.12-slim
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl
+    curl git build-essential && rm -rf /var/lib/apt/lists/*
+
 
 # Install Poetry globally
 RUN pip install --no-cache-dir poetry

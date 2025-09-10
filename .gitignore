@@ -17,3 +17,5 @@ edr_target
 
 # macOS
 .DS_Store
+
+trino-metastore/

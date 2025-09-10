@@ -64,6 +64,9 @@ quote-style = 'single'
 [tool.pytest.ini_options]
 pythonpath = "."
 addopts = '-p no:warnings' # Supress warning messages in pytest
+testpaths = [
+    "tests",
+]
 
 [tool.poetry.scripts]
 entrypoint = "promptly.app:main"
@@ -76,7 +79,6 @@ pytest = "^8.4.1"
 pytest-cov = "^6.2.1"
 pyperclip = "^1.9.0"
 
-
 [tool.taskipy.tasks]
 # linting and formatting
 lint = 'ruff check . && ruff check . --diff'
@@ -86,10 +88,19 @@ lint_sql = 'sqlfluff lint ./dbt/ --dialect trino'
 format_sql = 'sqlfluff format ./dbt/ --dialect trino'
 
 # testing
-test_acceptance_dbt = 'poetry run pytest -s -x -vv -k "test_dbt"'
-test_acceptance_dbt_debug = 'DEBUG=true poetry run pytest -s -x -vv -k "test_dbt"'
+test_acceptance_dbt = 'poetry run pytest -s -x -vv -k "test_acceptance_dbt"'
+test_acceptance_dbt_debug = 'DEBUG=true poetry run pytest -s -x -vv -k "test_acceptance_dbt"'
+test_acceptance_infra = 'poetry run pytest -s -x -vv -k "test_acceptance_infra"'
+
+# debugging tests
 exec_test_container = 'docker exec -it dbt-acceptance-test-container /bin/bash'
-test_acceptance_infra = 'poetry run pytest -s -x -vv -k "test_infra"'
 
 # utils
 docker_clean_up = 'docker rm $(docker ps -aq)'
+
+# setup dbt
+pre_dbt_setup = 'docker-compose up -d && sleep 10'
+dbt_setup = 'poetry run python promptly/app.py'
+
+# dev env clean up
+dev_cleanup = "docker-compose down && docker-compose rm --force"
