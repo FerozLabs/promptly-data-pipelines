@@ -23,10 +23,18 @@ poetry install
 ```bash
 poetry run task dev_setup
 ```
+This command will start all the necessary infrastructure using Docker Compose.
+After that it populates the Postgres database with sample data and configures the CDC logic to make the data available in Kafka.
 
 ### Tips
 - If coding in VSCode you can install the sqltools extension to connect to Trino and access the data directly from the editor. The configurations are in `.vscode/settings.json`.
 - Create a `.env` file based on the `.env.example` the file is already filled with the right values for local development.
+
+### Acceptance Tests
+```bash
+poetry run task test_acceptance_dbt
+```
+The idea of this test is to guarantee that the image built with this repo can run all the dbt commands successfully if it has proper access to the infrastructure (Trino, Postgres, MinIO).
 
 ## Challenge 1 – Data Ingestion and Transformation
 
