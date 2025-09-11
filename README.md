@@ -26,6 +26,21 @@ poetry run task dev_setup
 This command will start all the necessary infrastructure using Docker Compose.
 After that it populates the Postgres database with sample data and configures the CDC logic to make the data available in Kafka.
 
+### Run DBT Models
+
+```bash
+poetry run task run_poc
+```
+
+### Check all components UI
+* Postgres: [http://localhost:5432](http://localhost:5432)
+* Kafka UI: [http://localhost:9999](http://localhost:9999)
+* Trino: [http://localhost:8080](http://localhost:8080) (admin)
+* MinIO: [http://localhost:9000](http://localhost:9000) (minioadmin/minioadmin)
+* Nessie: [http://localhost:19120](http://localhost:19120)
+
+The Elementary Data UI will pop up after running the dbt models for the first time.
+
 ### Tips
 - If coding in VSCode you can install the sqltools extension to connect to Trino and access the data directly from the editor. The configurations are in `.vscode/settings.json`.
 - Create a `.env` file based on the `.env.example` the file is already filled with the right values for local development.

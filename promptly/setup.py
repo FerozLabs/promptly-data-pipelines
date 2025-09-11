@@ -84,7 +84,8 @@ def main():
         },
     }
 
-    time.sleep(10)  # Wait for Kafka Connect to be ready
+    time.sleep(20)  # Wait for Kafka Connect to be ready
+    # TODO: implement a retry mechanism with exponential backoff and timeout
     try:
         response = requests.post(
             url,
@@ -121,7 +122,8 @@ def main():
     WITH (
         format = 'CSV',
         csv_separator = ',',
-        external_location = 's3://healthcare/raw/'
+        external_location = 's3://healthcare/raw/',
+        skip_header_line_count = 1
     )
     """
 

@@ -1,0 +1,38 @@
+version: 2
+
+models:
+  - name: curated_provider
+    description: "Table containing provider information coming from MinIO and Postgres."
+    columns:
+      - name: provider_id
+        description: "Primary key for the provider table."
+        tests:
+          - unique
+          - not_null
+
+      - name: provider_name
+        description: "Name of the provider."
+        tests:
+          - not_null
+
+      - name: npi
+        description: "National Provider Identifier (NPI)."
+
+      - name: provider_type_concept_id
+        description: "Foreign key to the concept table for provider type."
+
+      - name: specialty_concept_id
+        description: "Foreign key to the concept table for provider specialty."
+
+      - name: care_site_id
+        description: "Foreign key to the care_site table."
+        tests:
+          - relationships:
+              to: ref('care_site')
+              field: care_site_id
+
+      - name: provider_source_value
+        description: "Source value for the provider identifier."
+
+      - name: specialty_source_value
+        description: "Source value for the specialty."

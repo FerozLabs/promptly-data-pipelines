@@ -1,0 +1,23 @@
+{
+  "tableName": "care_site",
+  "topicName": "cdc.public.care_site",
+  "key": {
+    "dataFormat": "json",
+    "fields": [
+      { "name": "care_site_id_key", "type": "INTEGER", "mapping": "payload.after.care_site_id" }
+    ]
+  },
+  "message": {
+    "dataFormat": "json",
+    "fields": [
+      { "name": "care_site_id", "type": "INTEGER", "mapping": "payload.after.care_site_id" },
+      { "name": "care_site_name", "type": "VARCHAR", "mapping": "payload.after.care_site_name" },
+      { "name": "care_site_source_value", "type": "VARCHAR", "mapping": "payload.after.care_site_source_value" },
+      { "name": "op", "type": "VARCHAR", "mapping": "payload.op" },
+      { "name": "event_timestamp", "type": "BIGINT", "mapping": "payload.ts_ms" },
+      { "name": "db", "type": "VARCHAR", "mapping": "payload.source.db" },
+      { "name": "schema", "type": "VARCHAR", "mapping": "payload.source.schema" },
+      { "name": "table", "type": "VARCHAR", "mapping": "payload.source.table" }
+    ]
+  }
+}

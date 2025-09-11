@@ -100,6 +100,13 @@ docker_clean_up = 'docker rm $(docker ps -aq)'
 
 # dev env setup
 pre_dev_setup = 'docker-compose up -d && sleep 10'
-dev_setup = 'poetry run python promptly/app.py'
+dev_setup = 'poetry run python promptly/setup.py'
 # dev env clean up
 dev_cleanup = "docker-compose down --remove-orphans && docker-compose rm --force"
+
+# DBT
+dbt_run = 'poetry run dotenv run dbt run --exclude elementary --target trino --project-dir dbt/promptly/ --profiles-dir dbt/promptly/profiles/'
+
+
+# Exercise 1
+run_exercise_1 = 'poetry run python promptly/app.py'

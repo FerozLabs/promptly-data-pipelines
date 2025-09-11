@@ -4,14 +4,11 @@ import subprocess
 import loguru
 from dotenv import load_dotenv
 
-from promptly.setup import main as setup_main
-
 logger = loguru.logger
 
 
 def main():
     load_dotenv()
-    setup_main()
 
     env_vars = [
         'TRINO_HOST',
@@ -42,7 +39,9 @@ def main():
         ),  # noqa: E501
         # TODO: move these to airflow
         (
-            'poetry run dbt run ' + dbt_common_configs + ' --target trino',
+            'poetry run dbt run --exclude elementary '
+            + dbt_common_configs
+            + ' --target trino',  # noqa: E501
             'DBT Run',
         ),
         (
