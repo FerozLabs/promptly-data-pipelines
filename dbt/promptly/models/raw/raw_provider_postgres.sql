@@ -20,5 +20,4 @@ select
 from kafka.default."cdc.public.provider"
 where json_query(_message, 'lax $.payload.after') is not null
 
-
 limit 10
