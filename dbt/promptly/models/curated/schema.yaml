@@ -6,6 +6,7 @@ models:
     columns:
       - name: provider_id
         description: "Primary key for the provider table."
+        type: integer
         tests:
           - unique
           - not_null
@@ -16,23 +17,29 @@ models:
           - not_null
 
       - name: npi
+        type: varchar(10)
         description: "National Provider Identifier (NPI)."
 
       - name: provider_type_concept_id
+        type: integer
         description: "Foreign key to the concept table for provider type."
 
       - name: specialty_concept_id
+        type: integer
         description: "Foreign key to the concept table for provider specialty."
 
       - name: care_site_id
+        type: integer
         description: "Foreign key to the care_site table."
         tests:
           - relationships:
-              to: ref('care_site')
+              to: ref('raw_care_site_postgres')  # Reference to the care_site table
               field: care_site_id
 
       - name: provider_source_value
+        type: varchar(50)
         description: "Source value for the provider identifier."
 
       - name: specialty_source_value
+        type: varchar(50)
         description: "Source value for the specialty."

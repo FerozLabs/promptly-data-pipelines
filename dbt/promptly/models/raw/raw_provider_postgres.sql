@@ -11,13 +11,22 @@
   ) 
 }}
 
-select
-    json_query(_message, 'lax $.payload.after.provider_id') as provider_id,
-    json_query(_message, 'lax $.payload.after') as nested_data,
-    _timestamp as ingestion_cdc_time,
-    date_format(_timestamp, '%Y-%m-%d') as ingestion_cdc_date,
-    current_timestamp as ingestion_timestamp
-from kafka.default."cdc.public.provider"
-where json_query(_message, 'lax $.payload.after') is not null
+with src as (
+    select
+        _timestamp as ingestion_cdc_time,
+        json_query(_message, 'lax $.payload.after.provider_id') as provider_id,
+        json_query(_message, 'lax $.payload.after') as nested_data,
+        date_format(_timestamp, '%Y-%m-%d') as ingestion_cdc_date,
+        current_timestamp as ingestion_timestamp
+    from {{ source('kafka', 'provider') }}
+    where json_query(_message, 'lax $.payload.after') is not null
+)
 
+select
+    provider_id,
+    nested_data,
+    ingestion_cdc_time,
+    ingestion_cdc_date,
+    ingestion_timestamp
+from src
 limit 10

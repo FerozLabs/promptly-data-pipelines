@@ -40,8 +40,14 @@ models:
     ## elementary models will be created in the schema '<your_schema>_elementary'
     +schema: "elementary"
     +materialized: table
+    alerts:
+      alerts_v2:
+        +materialized: table
+
     ## To disable elementary for dev, uncomment this:
     # enabled: "{{ target.name in ['prod','analytics'] }}"
+
+
   elementary_cli:
     +schema: "elementary"
     +materialized: table

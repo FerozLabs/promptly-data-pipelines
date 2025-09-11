@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: kafka
+    database: kafka
+    schema: default
+    tables:
+      - name: provider
+        identifier: "cdc.public.provider"
+        description: "Source table for provider data from Kafka CDC"
+        

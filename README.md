@@ -29,7 +29,7 @@ After that it populates the Postgres database with sample data and configures th
 ### Run DBT Models
 
 ```bash
-poetry run task run_poc
+poetry run task run_exercise_1
 ```
 
 ### Check all components UI
