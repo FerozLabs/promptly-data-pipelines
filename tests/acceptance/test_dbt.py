@@ -117,12 +117,19 @@ def test_acceptance_dbt(  # noqa: PLR0914
             + ' --target trino',
             'Elementary Setup',
         ),  # noqa: E501
+        # TODO: add kafka cdc tests
         (
-            'poetry run dbt run ' + dbt_common_configs + ' --target trino',
+            'poetry run dbt run '
+            + dbt_common_configs
+            + ' --target trino'
+            + ' --exclude elementary --exclude tag:raw+',
             'DBT Run',
         ),
         (
-            'poetry run dbt test ' + dbt_common_configs + ' --target trino',
+            'poetry run dbt test '
+            + dbt_common_configs
+            + ' --target trino'
+            + ' --exclude tag:raw+',
             'DBT Test',
         ),
         (
